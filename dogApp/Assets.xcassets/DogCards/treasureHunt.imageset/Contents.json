@@ -1,17 +1,17 @@
 {
   "images" : [
     {
-      "filename" : "treasureHunt.png",
+      "filename" : "treasureHunt.jpg",
       "idiom" : "universal",
       "scale" : "1x"
     },
     {
-      "filename" : "treasureHunt@2x.png",
+      "filename" : "treasureHunt@2x.jpg",
       "idiom" : "universal",
       "scale" : "2x"
     },
     {
-      "filename" : "treasureHunt@3x.png",
+      "filename" : "treasureHunt@3x.jpg",
       "idiom" : "universal",
       "scale" : "3x"
     }
