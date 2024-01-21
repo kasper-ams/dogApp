@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ProgramSheetLeashQuiz: View {
-    var bgColor = Color(red: 250.0/255.0, green: 250.0/255.0, blue: 250.0/255.0)
+    let bgColor = Color(red: 1, green: 0.99, blue: 0.97)
     @Environment(\.presentationMode) var presentationMode
     @State private var isQuizButtonTrueTapped = false
     @State private var isProgramCompleteButtonVisible = false

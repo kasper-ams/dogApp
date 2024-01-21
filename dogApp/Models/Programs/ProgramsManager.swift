@@ -15,12 +15,23 @@ final class ProgramsManager {
 
     private let programsCollection = Firestore.firestore().collection("programs")
     
+    private let programsSheetCollection = Firestore.firestore().collection("lessons")
+
+    
     private func programDocument(programId: String) -> DocumentReference {
         programsCollection.document(programId)
     }
     
+    private func programSheetDocument(programSheetId: String) -> DocumentReference {
+        programsSheetCollection.document(programSheetId)
+    }
+    
     func uploadProgram(program: ProgramStructure) async throws {
         try programDocument(programId: String(program.id)).setData(from: program, merge: false)
+    }
+    
+    func uploadProgramSheet(programSheet: ProgramSheetStructure) async throws {
+        try programSheetDocument(programSheetId: String(programSheet.id)).setData(from: programSheet, merge: false)
     }
 
     func getProgram(programId: String) async throws -> ProgramStructure {
@@ -37,6 +48,7 @@ final class ProgramsManager {
             .startOptionally(afterDocument: lastDocument)
             .getDocumentsWithSnapshot(as: ProgramStructure.self)
     }
+    
     
    
    

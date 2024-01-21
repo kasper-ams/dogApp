@@ -13,7 +13,7 @@ import Firebase
 struct ProgramSheetTemplate: View {
     
     @Environment(\.presentationMode) var presentationMode
-    let bgColor = Color(red: 250.0/255.0, green: 250.0/255.0, blue: 250.0/255.0)
+    let bgColor = Color(red: 1, green: 0.99, blue: 0.97)
     let program: ProgramSheetStructure
     
     @State private var userLessons: [ProgramSheetStructure] = []
@@ -67,33 +67,6 @@ struct ProgramSheetTemplate: View {
                         }
                     }
    
-                    Button(action: {
-                        Task {
-                            do {
-                                let authDataResult = try AuthenticationManager.shared.getAuthenticatedUser()
-                                try await viewModel.removeLesson(userId: authDataResult.uid, lessonId: program.id)
-                                print("Lesson removed from user collection")
-                            } catch {
-                                print("Error removing lesson from user collection:", error.localizedDescription)
-                            }
-                        }
-                    }, label: {
-                        Text("Remove")
-                    })
-                    
-                    Button(action: {
-                        Task {
-                            do {
-                                let isCompleted = try await UserManager.shared.isLessonCompleted(lessonId: program.id)
-                                print("Is lesson completed: \(isCompleted)")
-                                
-                            } catch {
-                                print("Error checking lesson completion:", error.localizedDescription)
-                            }
-                        }
-                    }, label: {
-                        Text("Get lesson status")
-                    })
                     
                     Text(program.title )
                         .font(.custom("SignikaNegative-SemiBold", size: 24))
@@ -104,11 +77,22 @@ struct ProgramSheetTemplate: View {
                             
                             Text(summary)
                                 .font(.custom("Poppins-Regular", size: 14))
-                                .foregroundColor(.gray)
+                                .foregroundColor(Color(red: 0.27, green: 0.27, blue: 0.27))
                                 .padding()
                         }
                     }
-                    Text(program.description )
+                    
+                    ZStack(alignment: .leading) {
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(Color(red: 1, green: 0.97, blue: 0.9))
+                            . overlay(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .strokeBorder(Color(red: 0.95, green: 0.67, blue: 0.07), lineWidth: 1))
+                        
+                        Text(program.description )
+                            .padding()
+                    }
+                    
                     Spacer()
                     
                     GetNamesButton(text: "Mark as complete") {
@@ -139,3 +123,32 @@ struct ProgramSheetTemplate: View {
 #Preview {
     ProgramSheetTemplate(program: ProgramSheetStructure(id: 1, title: "Title", description: "description", summary: "summary", image: "Sit"))
 }
+
+
+//                    Button(action: {
+//                        Task {
+//                            do {
+//                                let authDataResult = try AuthenticationManager.shared.getAuthenticatedUser()
+//                                try await viewModel.removeLesson(userId: authDataResult.uid, lessonId: program.id)
+//                                print("Lesson removed from user collection")
+//                            } catch {
+//                                print("Error removing lesson from user collection:", error.localizedDescription)
+//                            }
+//                        }
+//                    }, label: {
+//                        Text("Remove")
+//                    })
+//
+//                    Button(action: {
+//                        Task {
+//                            do {
+//                                let isCompleted = try await UserManager.shared.isLessonCompleted(lessonId: program.id)
+//                                print("Is lesson completed: \(isCompleted)")
+//
+//                            } catch {
+//                                print("Error checking lesson completion:", error.localizedDescription)
+//                            }
+//                        }
+//                    }, label: {
+//                        Text("Get lesson status")
+//                    })

@@ -14,7 +14,10 @@ import Combine
 final class ProgramViewModel: ObservableObject {
     
     @Published private(set) var programs: [ProgramStructure] = []
+    @Published private(set) var userLessons: [Lesson] = []
+    
     private var lastDocument: DocumentSnapshot? = nil
+    private var cancellables = Set<AnyCancellable>()
 
     
     func uploadProgramsToFirebase() {
@@ -34,23 +37,52 @@ final class ProgramViewModel: ObservableObject {
         }
     }
     
-//    func addUserProgram(programId: Int) {
-//        Task {
-//            let authDataResult = try AuthenticationManager.shared.getAuthenticatedUser()
-//            try? await UserManager.shared.updateProgramStatusInFirestore(userId: authDataResult.uid, programId: programId)
-//        }
-//    }
     
-    func addUserProgram(programId: Int) {
+    func uploadProgramSheetsToFirebase() {
         Task {
             do {
-                let authDataResult = try AuthenticationManager.shared.getAuthenticatedUser()
-                let userId = authDataResult.uid
-                let status = "inProgress" // Set the initial status 
-                try? await UserManager.shared.updateProgramStatusInFirestore(userId: userId, programId: programId, status: status)
+                let programSheets = ProgramSheetArray(programSheets: ProgramSheetDatabase.programs, total: ProgramSheetDatabase.programs.count, skip: 0, limit: 50)
+                let programSheetArray = programSheets.programSheets
+                
+                for programs in programSheetArray {
+                    try? await ProgramsManager.shared.uploadProgramSheet(programSheet: programs)
+                }
+                print("Success")
+                print(programSheets.programSheets.count)
             } catch {
-                print("Error getting authenticated user: \(error)")
+                print("error")
             }
         }
+    }
+    
+   
+    func updateLessonStatus(lessonId: Int) {
+        Task {
+            let authDataResult = try AuthenticationManager.shared.getAuthenticatedUser()
+            
+            do {
+                try await UserManager.shared.updateLessonStatus(userId: authDataResult.uid, lessonId: lessonId)
+                print("Lesson status updated")
+            } catch {
+                print("Error updating lesson status:", error.localizedDescription)
+            }
+        }
+    }
+    
+
+    func removeLesson(userId: String, lessonId: Int) async throws {
+            try await UserManager.shared.removeLesson(userId: userId, lessonId: lessonId)
+        }
+    
+    func addListenerForLessons() {
+        guard let authDataResult = try? AuthenticationManager.shared.getAuthenticatedUser() else { return }
+        
+        UserManager.shared.addListenerForUserLessons(userId: authDataResult.uid)
+            .sink { completion in
+                
+            } receiveValue: { [weak self] lessons in
+                self?.userLessons = lessons
+            }
+            .store(in: &cancellables)
     }
 }

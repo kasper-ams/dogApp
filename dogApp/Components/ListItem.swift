@@ -13,17 +13,18 @@ struct ListItem: View {
 
     var body: some View {
         VStack(spacing: 4) {
+            
             Image(image)
                 .resizable()
-                .frame(width: 72, height: 72)
+                .aspectRatio(contentMode: .fill)
+                .frame(width: 80, height: 80)
+                .clipShape(RoundedRectangle(cornerRadius: 8))
             
             Text(text)
                 .font(.custom("SignikaNegative-Regular", size: 16))
                 .frame(maxWidth: 72)
                 .multilineTextAlignment(.center)
-             
 
-            
         }
        
     }

@@ -6,174 +6,214 @@
 //
 
 import SwiftUI
+import Firebase
+import FirebaseAuth
 
 struct DailyView: View {
     
-    @ObservedObject var items = Items()
+    @StateObject private var viewModel = ProgramViewModel()
+    @ObservedObject var profileViewModel = ProfileViewModel()
+    @EnvironmentObject private var authStateManager: AuthStateManager
+
+
     
     @AppStorage("lastSelectedDate") var lastSelectedDate: String = ""
-    @AppStorage("programStatus") var programStatusFirst = ProgramStatusFirst.notStarted.rawValue
-    @AppStorage("programStatusLeash") var programStatusLeash = ProgramStatusLeash.notStarted.rawValue
-    @AppStorage("programStatusOffice") var programStatusOffice = ProgramStatusOffice.notStarted.rawValue
-
-    let colorTop = Color(red: 1, green: 0.66, blue: 0.47)
-    let colorBottom = Color(red: 1, green: 0.58, blue: 0.35)
-
-    @State var selectedRandomItems: [Item] = []
-    @State private var selectedItem: Item? = nil
+    
+    @State private var programStatusFirst: String = "notStarted"
+    @State private var programStatusLeash: String = "notStarted"
+    @State private var programStatusOffice: String = "notStarted"
+    
+    @State private var refreshDailyView = false
 
     
+    let colorTop = Color(red: 1, green: 0.66, blue: 0.47)
+    let colorBottom = Color(red: 1, green: 0.58, blue: 0.35)
+    
+    @State var selectedRandomItems: [ItemStructure] = []
+    @State private var selectedItem: ItemStructure? = nil
+    let itemDatabase = ItemDatabase()
+    
     func selectRandomItems() {
-          // Assuming there are at least three items in each category
-          let randomCommands = items.commands.shuffled().prefix(1)
-          let randomTricks = items.tricks.shuffled().prefix(1)
-          let randomGames = items.games.shuffled().prefix(1)
-
-          // Combine the selected random items
-          let combinedRandomItems = randomCommands + randomTricks + randomGames
-
-          // Assign the combined random items to selectedRandomItems
-          selectedRandomItems = Array(combinedRandomItems)
-
-          // Update the last selected date
-          lastSelectedDate = getCurrentDate()
-
-          // Print statement for verification
-          print("Selected Random Items: \(selectedRandomItems.map { $0.text })")
-      }
+        let randomCommands = ItemDatabase.commands.shuffled().prefix(1)
+        let randomTricks = ItemDatabase.tricks.shuffled().prefix(1)
+        let randomGames = ItemDatabase.games.shuffled().prefix(1)
+        
+        let combinedRandomItems = randomCommands + randomTricks + randomGames
+        selectedRandomItems = Array(combinedRandomItems)
+        
+        lastSelectedDate = getCurrentDate()
+        print("Selected Random Items: \(selectedRandomItems.map { $0.title })")
+    }
     
     
     
     func shouldRunSelectRandomItems() -> Bool {
         let currentDate = getCurrentDate()
         let lastSelectedDate = self.lastSelectedDate
-
-        // Print statements for verification
+        
         print("Current Date: \(currentDate)")
         print("Last Selected Date: \(lastSelectedDate)")
-
-        // Compare the current date with the last selected date or check if selectedRandomItems is empty
+        
         let shouldRun = currentDate != lastSelectedDate || selectedRandomItems.isEmpty
         print("Should Run Select Random Items: \(shouldRun)")
-
+        
         return shouldRun
     }
     
     
-    // Function to get the current date as a string
     func getCurrentDate() -> String {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd"
         let currentDate = dateFormatter.string(from: Date())
-
-        // Print statement for verification
+        
         print("Current Date (Formatted): \(currentDate)")
-
+        
         return currentDate
     }
-    
-    
     
     var body: some View {
         ZStack(alignment: .topLeading) {
             RoundedRectangle(cornerRadius: 8)
                 .fill(Color(red: 0xF3 / 255.0, green: 0xF1 / 255.0, blue: 0xEE / 255.0))
-
             
-// programs in progress
+            
+            // programs in progress -- dont show when not logged in
+            
             VStack(alignment: .leading, spacing: 24) {
-                Group {
-                    let isInProgress =
-                    programStatusFirst == ProgramStatusFirst.inProgress.rawValue ||
-                    programStatusLeash == ProgramStatusLeash.inProgress.rawValue ||
-                    programStatusOffice == ProgramStatusOffice.inProgress.rawValue
-
-                    if isInProgress {
-                        VStack(alignment: .leading, spacing: 32) {
-                            Text("Active programs")
-                                .foregroundColor(.black)
-                                .font(.custom("SignikaNegative-SemiBold", size: 18))
-
-                            
-                            if programStatusFirst == ProgramStatusFirst.inProgress.rawValue {
-                                NavigationLink(destination: ProgramViewFirst()) {
-                                    ZStack(alignment: .topLeading) {
-                                        ProgramCardSmall(text: "My first puppy", image: "puppy", colorTop: colorTop, colorBottom: colorBottom)
-                                        Text("In progress")
-                                            .foregroundColor(.white)
-                                            .font(.custom("SignikaNegative-Regular", size: 16))
-                                            .padding(.leading, 24)
-                                            .padding(.top, 16)
+                if let user = Auth.auth().currentUser {
+                    Group {
+                        let isInProgress =
+                        programStatusFirst == "inProgress" || programStatusLeash == "inProgress" || programStatusOffice == "inProgress"
+                        
+                        if isInProgress {
+                            VStack(alignment: .leading, spacing: 32) {
+                                Text("Active programs")
+                                    .foregroundColor(.black)
+                                    .font(.custom("SignikaNegative-SemiBold", size: 18))
+                                
+                                
+                                
+                                
+                                if programStatusFirst == "inProgress" {
+                                    NavigationLink(destination: ProgramViewFirst(program: ProgramStructure(id: 1, title: "String?", status: "String?", image: "puppy"))) {
+                                        ZStack(alignment: .topLeading) {
+                                            ProgramCardSmall(text: "My first puppy", image: "puppy", colorTop: colorTop, colorBottom: colorBottom)
+                                            Text("In progress")
+                                                .foregroundColor(.white)
+                                                .font(.custom("SignikaNegative-Regular", size: 16))
+                                                .padding(.leading, 24)
+                                                .padding(.top, 16)
+                                        }
                                     }
+                                }
+                                
+                                if programStatusLeash == "inProgress" {
+                                    NavigationLink(destination: ProgramViewLeash(program: ProgramStructure(id: 2, title: "String?", status: "String?", image: "puppy"))) {
+                                        ZStack(alignment: .topLeading) {
+                                            ProgramCardSmall(text: "Leash Training", image: "leashWalking", colorTop: Color(red: 0.61, green: 0.79, blue: 0.86), colorBottom: Color(red: 0.53, green: 0.75, blue: 0.83))
+                                            Text("In progress")
+                                                .foregroundColor(.white)
+                                                .font(.custom("SignikaNegative-Regular", size: 16))
+                                                .padding(.leading, 24)
+                                                .padding(.top, 16)
+                                        }
+                                    }
+                                }
+                                
+                                if programStatusOffice == "inProgress" {
+                                    NavigationLink(destination: ProgramViewOffice(program: ProgramStructure(id: 3, title: "String?", status: "String?", image: "puppy"))) {
+                                        ZStack(alignment: .topLeading) {
+                                            ProgramCardSmall(text: "Office training", image: "office", colorTop: Color(red: 0.54, green: 0.55, blue: 0.86), colorBottom: Color(red: 0.45, green: 0.47, blue: 0.83))
+                                            Text("In progress")
+                                                .foregroundColor(.white)
+                                                .font(.custom("SignikaNegative-Regular", size: 16))
+                                                .padding(.leading, 24)
+                                                .padding(.top, 16)
+                                        }
+                                    }
+                                    Spacer()
+                                        .frame(height: 4)
                                 }
                             }
-
-                            if programStatusLeash == ProgramStatusLeash.inProgress.rawValue {
-                                NavigationLink(destination: ProgramViewLeash()) {
-                                    ZStack(alignment: .topLeading) {
-                                        ProgramCardSmall(text: "Leash Training", image: "leashWalking", colorTop: Color(red: 0.61, green: 0.79, blue: 0.86), colorBottom: Color(red: 0.53, green: 0.75, blue: 0.83))
-                                        Text("In progress")
-                                            .foregroundColor(.white)
-                                            .font(.custom("SignikaNegative-Regular", size: 16))
-                                            .padding(.leading, 24)
-                                            .padding(.top, 16)
-                                    }
+                        }
+                    } }
+                    
+                    // daily challenges
+                    VStack(alignment: .leading, spacing: 24) {
+                        Text("Daily challenges")
+                            .foregroundColor(.black)
+                            .font(.custom("SignikaNegative-SemiBold", size: 18))
+                        
+                        VStack(spacing: 12) {
+                            ForEach(selectedRandomItems, id: \.id) { item in
+                                Button(action: {
+                                    selectedItem = item
+                                }) {
+                                    DailyChallengeCard(text: item.title ?? "", image: item.image ?? "")
                                 }
-                            }
-
-                            if programStatusOffice == ProgramStatusOffice.inProgress.rawValue {
-                                NavigationLink(destination: ProgramViewOffice()) {
-                                    ZStack(alignment: .topLeading) {
-                                        ProgramCardSmall(text: "Office training", image: "office", colorTop: Color(red: 0.54, green: 0.55, blue: 0.86), colorBottom: Color(red: 0.45, green: 0.47, blue: 0.83))
-                                        Text("In progress")
-                                            .foregroundColor(.white)
-                                            .font(.custom("SignikaNegative-Regular", size: 16))
-                                            .padding(.leading, 24)
-                                            .padding(.top, 16)
-                                    }
+                                .sheet(item: $selectedItem) { item in
+                                    item.presentSheet()
                                 }
-                                Spacer()
-                                    .frame(height: 4)
                             }
                         }
                     }
-                }
-// daily challenges
-                VStack(alignment: .leading, spacing: 24) {
-                    Text("Daily challenges")
-                        .foregroundColor(.black)
-                        .font(.custom("SignikaNegative-SemiBold", size: 18))
-
-                    VStack(spacing: 12) {
-                        ForEach(selectedRandomItems, id: \.id) { item in
-                            Button(action: {
-                                selectedItem = item
-                            }) {
-                                DailyChallengeCard(text: item.text, image: item.image)
-                            }
-                        }
-                    }
-                }
+                
+                
             }
+            
             .padding()
+            
         }
         .onAppear() {
-            // Check if the current date is different from the last selected date or if selectedRandomItems is empty
             if shouldRunSelectRandomItems() {
-                // Run the function to select random items
                 selectRandomItems()
             }
+            Task {
+                do {
+                    let authDataResult = try AuthenticationManager.shared.getAuthenticatedUser()
+                    
+                    // Fetch user programs
+                    let userPrograms = try await UserManager.shared.getUserPrograms(userId: authDataResult.uid)
+                    
+                    if let firstProgram = userPrograms.first(where: { $0.programId == 1 }) {
+                        programStatusFirst = firstProgram.status
+                    }
+                    if let leashProgram = userPrograms.first(where: { $0.programId == 2 }) {
+                        programStatusLeash = leashProgram.status
+                    }
+                    if let officeProgram = userPrograms.first(where: { $0.programId == 3 }) {
+                        programStatusOffice = officeProgram.status
+                    }
+                    
+                    print("User has programs: \(userPrograms)")
+                    
+                } catch {
+                    print("Error fetching user programs:", error.localizedDescription)
+                }
+            }
+            
         }
-        
+        .onAppear {
+            Task {
+                refreshDailyView.toggle()
+            }
+        }
+
         
         .padding([.leading, .trailing], 16)
         .fixedSize(horizontal: false, vertical: true)
-        .sheet(item: $selectedItem) { item in
-            item.sheet()
-        }
     }
 }
 
 #Preview {
     DailyView()
 }
+
+
+
+//        .onChange(of: authStateManager.isSignedIn) { _ in
+//            refreshDailyView.toggle()
+//                }
+//                .task {
+//                    try? await profileViewModel.loadCurrentUser()
+//                }

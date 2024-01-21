@@ -25,6 +25,7 @@ struct DailyChallengeCard: View {
                    HStack {
                        Image(image)
                            .resizable()
+                           .aspectRatio(contentMode: .fill)
                            .frame(width: 48, height: 48)
                            .clipShape(Circle())
                        Text(text)

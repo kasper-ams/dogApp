@@ -6,11 +6,15 @@
 //
 
 import SwiftUI
+import Firebase
+
+
 enum ProgramStatusFirst: String {
     case notStarted
     case inProgress
     case completed
 }
+
 
 struct ProgramViewFirst: View {
     
@@ -19,43 +23,57 @@ struct ProgramViewFirst: View {
     let activeColor = Color(red: 0, green: 0.43, blue: 0.47)
     let bgColor = Color(red: 250.0/255.0, green: 250.0/255.0, blue: 250.0/255.0)
     
-    @State private var programSheetSit = false
-    @State private var programSheetRecall = false
-    @State private var programSheetStay = false
-    @State private var programSheetEyeContact = false
+    @StateObject private var viewModel = ProgramViewModel()
+    let program: ProgramStructure
+    @State private var programSheetStructures: [ProgramSheetStructure] = ProgramSheetDatabase.programs
+    
+    @State private var selectedLesson: ProgramSheetStructure? = nil
+    
+    @State private var isLessonOneComplete: Bool = false
+    @State private var isLessonTwoComplete: Bool = false
+    @State private var isLessonThreeComplete: Bool = false
+    @State private var isLessonFourComplete: Bool = false
+    
+    // update later to show label dynamically
+    @State private var label = "Start lesson"
+    
+    @State private var programLabel = ""
     
     
-    @AppStorage("isSitComplete") var isSitComplete = false
-    @AppStorage("isRecallComplete") var isRecallComplete = false
-    @AppStorage("isStayComplete") var isStayComplete = false
-    @AppStorage("isEyeContactComplete") var isEyeContactComplete = false
-    
-    
-    @AppStorage("firstButtonLabel") var firstButtonLabel = "Enroll"
-    
-    
-    @AppStorage("programStatus") var programStatusFirst = ProgramStatusFirst.notStarted.rawValue
-    
-    
-    // Helper function to determine the active task
-    func activeTask() -> String {
-        if !isSitComplete {
+    @State private var programSheetActive: ProgramSheetStructure? = nil
+
+    private func activeTask() -> String {
+        if !isLessonOneComplete {
             return "Sit"
-        } else if !isRecallComplete {
+        } else if !isLessonTwoComplete {
             return "Recall"
-        } else if !isStayComplete {
+        } else if !isLessonThreeComplete {
             return "Stay"
-        } else if !isEyeContactComplete {
+        } else if !isLessonFourComplete {
             return "EyeContact"
         } else {
             return "AllTasksCompleted"
         }
     }
+
+    private func isLessonComplete(for programSheet: ProgramSheetStructure) -> Bool {
+        switch programSheet.id {
+        case 1:
+            return isLessonOneComplete
+        case 2:
+            return isLessonTwoComplete
+        case 3:
+            return isLessonThreeComplete
+        case 4:
+            return isLessonFourComplete
+        default:
+            return false
+        }
+    }
     
     
     var body: some View {
-        
-            
+   
         ZStack(alignment: .topTrailing) {
             
             bgColor.ignoresSafeArea()
@@ -70,18 +88,19 @@ struct ProgramViewFirst: View {
                         ZStack {
                             RoundedRectangle(cornerRadius: 0)
                                 .fill(LinearGradient(colors: [colorTop, colorBottom], startPoint: .top, endPoint: .bottom))
-                                .frame(width: /*@START_MENU_TOKEN@*/.infinity/*@END_MENU_TOKEN@*/, height: 164)
-                                
-                                
+                                .frame(width: .infinity, height: 164)
+                            
                             
                             HStack(alignment: .bottom) {
                                 VStack(alignment: .leading) {
-                                    if programStatusFirst == ProgramStatusFirst.inProgress.rawValue {
-                                        Text("In progress")
+                                       
+                                        Text(programLabel)
                                             .font(.custom("SignikaNegative-SemiBold", size: 16))
                                             .foregroundColor(.white)
                                             .padding(.bottom, 32)
-                                    }
+                                    
+                                    
+                                    
                                     Text("My first puppy")
                                         .font(.custom("SignikaNegative-SemiBold", size: 24))
                                         .foregroundColor(.white)
@@ -103,15 +122,16 @@ struct ProgramViewFirst: View {
                         ZStack {
                             RoundedRectangle(cornerRadius: 8)
                                 .fill(Color .white)
-                                
-                                
+                            
+
                             VStack(alignment: .leading, spacing: 24) {
                                 
-                                if isSitComplete && isRecallComplete && isStayComplete && isEyeContactComplete {
+                                if isLessonFourComplete {
+                                    
                                     ZStack(alignment: .leading) {
                                         RoundedRectangle(cornerRadius: 8)
                                             .fill(Color(red: 0.91, green: 1, blue: 0.94))
-                                            .frame(width: /*@START_MENU_TOKEN@*/.infinity/*@END_MENU_TOKEN@*/, height: 36)
+                                            .frame(width: .infinity, height: 36)
                                         VStack(alignment: .leading) {
                                             HStack(alignment: .center, spacing: 2) {
                                                 Image(systemName: "checkmark.seal")
@@ -122,171 +142,228 @@ struct ProgramViewFirst: View {
                                                 
                                             }
                                             .padding()
-                                
                                             
-                                            //reset button
-//                                                Button(action: {
-//                                                    isSitComplete = false
-//                                                    isRecallComplete = false
-//                                                    isStayComplete = false
-//                                                    isEyeContactComplete = false
-//                                                    programStatusFirst = ProgramStatusFirst.notStarted.rawValue
-//                                                    print(programStatusFirst)
-//                                                }, label: {
-//                                                    Text("Reset")
-//                                                })
+                                            // debug: reset button
+//                                            Button(action: {
+//                                                isLessonOneComplete = false
+//                                                isLessonTwoComplete = false
+//                                                isLessonThreeComplete = false
+//                                                isLessonFourComplete = false
+//
+//                                            }, label: {
+//                                                Text("Reset")
+//                                            })
                                         }
                                     }
-                        
-                                    
                                 }
-                                
-                                
                                 
                                 Text("This program will teach you the essentials when getting started with your fist dog. You can build upon these foundations to teach more advanced commands.")
                                     .font(.custom("Poppins-Regular", size: 16))
                                     .lineLimit(nil)
                                     .fixedSize(horizontal: false, vertical: true)
                                 
-                                
                                 Text("Curriculum")
                                     .font(.custom("SignikaNegative-SemiBold", size: 18))
                                 
-                                //list of items
+                                
                                 VStack(alignment: .leading, spacing: 12) {
                                     
-                                    Button(action: {
-                                        if isSitComplete || isRecallComplete || isStayComplete || isEyeContactComplete {
-                                            programSheetSit.toggle()
+                                   
+                                    ForEach(programSheetStructures.prefix(4)) { programSheet in
+                                        let index = programSheetStructures.firstIndex(of: programSheet) ?? 0
+                                        let isPreviousTaskComplete = index > 0 ? isLessonComplete(for: programSheetStructures[index - 1]) : true
+
+                                        LessonButton(
+                                            text: programSheet.title,
+                                            isComplete: isLessonComplete(for: programSheet),
+                                            action: {
+                                                selectedLesson = programSheet
+                                            },
+                                            isPreviousTaskComplete: isPreviousTaskComplete
+                                        )
+                                        .sheet(item: $selectedLesson) { lesson in
+                                            ProgramSheetTemplate(program: lesson)
                                         }
-                                    }) {
-                                        HStack {
-                                            Image(systemName: isSitComplete ? "checkmark" : "circle")
-                                                .foregroundColor(isSitComplete ? .black : activeColor)
-                                            Text("Sit")
-                                                .font(Font.custom("Poppins", size: 16))
-                                                .foregroundColor(isSitComplete ? .black : activeColor)
-                                        }
+                                        Divider()
                                     }
-                                    Divider()
-                                    Button(action: {
-                                        if isRecallComplete || isSitComplete {
-                                            programSheetRecall.toggle()
-                                        }
-                                    }) {
-                                        HStack {
-                                            Image(systemName: isRecallComplete ? "checkmark" : (isSitComplete ? "circle" : "lock"))
-                                                .foregroundColor(isRecallComplete ? .black : (isSitComplete ? activeColor : .gray))
-                                            Text("Recall")
-                                                .font(Font.custom("Poppins", size: 16))
-                                                .foregroundColor(isRecallComplete ? .black : (isSitComplete ? activeColor : .gray))
-                                        }
-                                    }
-                                    Divider()
-                                    
-                                    Button(action: {
-                                        if isStayComplete || isRecallComplete  {
-                                            programSheetStay.toggle()
-                                        }
-                                    }) {
-                                        HStack {
-                                            Image(systemName: isStayComplete ? "checkmark" : (isRecallComplete ? "circle" : "lock"))
-                                                .foregroundColor(isStayComplete ? .black : (isRecallComplete ? activeColor : .gray))
-                                            Text("Stay")
-                                                .font(Font.custom("Poppins", size: 16))
-                                                .foregroundColor(isStayComplete ? .black : (isRecallComplete ? activeColor : .gray))
-                                        }
-                                    }
-                                    
-                                    
-                                    Divider()
-                                    
-                                    Button(action: {
-                                        if isStayComplete   {
-                                            programSheetEyeContact.toggle()
-                                        }
-                                    }) {
-                                        HStack {
-                                            Image(systemName: isEyeContactComplete ? "checkmark" : (isStayComplete ? "circle" : "lock"))
-                                                .foregroundColor(isEyeContactComplete ? .black : (isStayComplete ? activeColor : .gray))
-                                            Text("Eye contact")
-                                                .font(Font.custom("Poppins", size: 16))
-                                                .foregroundColor(isEyeContactComplete ? .black : (isStayComplete ? activeColor : .gray))
-                                        }
-                                    }
-                                    
+
                                 }
                                 
-                                Spacer()
+                                //   main button
                                 
-                                
-                                //main button
                                 ZStack {
-                                    GetNamesButton(text: firstButtonLabel) {
-                                        switch activeTask() {
-                                        case "Sit":
-                                            programSheetSit.toggle()
-                                        case "Recall":
-                                            programSheetRecall.toggle()
-                                        case "Stay":
-                                            programSheetStay.toggle()
-                                        case "EyeContact":
-                                            programSheetEyeContact.toggle()
-                                        default:
-                                            Text("All done!")
-                                            
+                                    GetNamesButton(text: label) {
+                                        // Set the active task based on the current active lesson
+                                        programSheetActive = programSheetStructures.first { isLessonComplete(for: $0) == false }
+                                        
+                                        // Check if there are no completed lessons
+                                        let hasNoCompletedLessons = !isLessonOneComplete && !isLessonTwoComplete && !isLessonThreeComplete && !isLessonFourComplete
+                                        
+                                        // Update label based on the presence of completed lessons
+                                               label = hasNoCompletedLessons ? "Start lesson" : "Continue"
+                                        
+                                        // Run UserManager.shared.addUserProgram only if there are no completed lessons - works
+                                        if hasNoCompletedLessons {
+                                            UserManager.shared.addUserProgram(programId: program.id)
                                         }
-                                        firstButtonLabel = "Continue"
-                                        programStatusFirst = ProgramStatusFirst.inProgress.rawValue
-                                        print(programStatusFirst)
+                                        
+                                        
+//                                        programStatusFirst = ProgramStatusFirst.inProgress.rawValue
+//                                        print(programStatusFirst)
                                     }
-                                    .opacity(isSitComplete && isRecallComplete && isStayComplete && isEyeContactComplete ? 0 : 1)
-                                    
-                                    
-                                    
-                                    
+                                    .opacity(isLessonOneComplete && isLessonTwoComplete && isLessonThreeComplete && isLessonFourComplete ? 0 : 1)
                                 }
-                                
-                                
+                                .sheet(item: $programSheetActive) { activeLesson in
+                                    ProgramSheetTemplate(program: activeLesson)
+                                }
                             }
                             .padding()
                             
-                            
-                            
                         }
-                        
                     }
                 }
-        }
+            }
             .navigationViewStyle(StackNavigationViewStyle())
-            
-            
-    }
-        .sheet(isPresented: $programSheetSit) {
-            ProgramSheetSit()
         }
-        .sheet(isPresented: $programSheetRecall) {
-            ProgramSheetRecall()
+        //figure out what is redundant here
+        .onAppear() {
+            AnalyticsManager.shared.logEvent(name: "ProgramViewFirst_Opened")
         }
-        .sheet(isPresented: $programSheetStay) {
-            ProgramSheetStay()
-        }
-        .sheet(isPresented: $programSheetEyeContact) {
-            ProgramSheetEyeContact()
-                .onDisappear {
-                    if isEyeContactComplete {
-                        programStatusFirst = ProgramStatusFirst.completed.rawValue
-                        print(programStatusFirst)
-                    }
+        .onChange(of: selectedLesson) { _ in
+            Task {
+                do {
+                    let authDataResult = try AuthenticationManager.shared.getAuthenticatedUser()
+                    let userLessons = try await UserManager.shared.getUserLessons(userId: authDataResult.uid)
+                    isLessonOneComplete = userLessons.contains { $0.lessonId == 1 }
+                    isLessonTwoComplete = userLessons.contains { $0.lessonId == 2 }
+                    isLessonThreeComplete = userLessons.contains { $0.lessonId == 3 }
+                    isLessonFourComplete = userLessons.contains { $0.lessonId == 4 }
+                    
+                    print("Completed lessons: \(userLessons.map { $0.lessonId })")
+                } catch {
+                    print("Error fetching user lessons:", error.localizedDescription)
                 }
+                if isLessonFourComplete {
+                        UserManager.shared.completeUserProgram(programId: program.id)
+                    }
+                Task {
+                        do {
+                            let authDataResult = try AuthenticationManager.shared.getAuthenticatedUser()
+                            let userProgramStatus = try await UserManager.shared.getUserProgramStatus(userId: authDataResult.uid, programId: program.id)
+
+                            switch userProgramStatus {
+                            case ProgramStatusFirst.inProgress.rawValue:
+                                programLabel = "In progress"
+                            case ProgramStatusFirst.completed.rawValue:
+                                programLabel = "Completed"
+                            default:
+                                programLabel = ""
+                            }
+                        } catch {
+                            print("Error getting user program status:", error.localizedDescription)
+                        }
+                    }
+            }
+            
+        }
+        .onChange(of: programSheetActive) { newActiveLesson in
+            Task {
+                do {
+                    let authDataResult = try AuthenticationManager.shared.getAuthenticatedUser()
+                    let userLessons = try await UserManager.shared.getUserLessons(userId: authDataResult.uid)
+                    isLessonOneComplete = userLessons.contains { $0.lessonId == 1 }
+                    isLessonTwoComplete = userLessons.contains { $0.lessonId == 2 }
+                    isLessonThreeComplete = userLessons.contains { $0.lessonId == 3 }
+                    isLessonFourComplete = userLessons.contains { $0.lessonId == 4 }
+                    
+                    print("Completed lessons: \(userLessons.map { $0.lessonId })")
+                } catch {
+                    print("Error fetching user lessons:", error.localizedDescription)
+                }
+                if isLessonFourComplete {
+                        UserManager.shared.completeUserProgram(programId: program.id)
+                    }
+                Task {
+                        do {
+                            let authDataResult = try AuthenticationManager.shared.getAuthenticatedUser()
+                            let userProgramStatus = try await UserManager.shared.getUserProgramStatus(userId: authDataResult.uid, programId: program.id)
+
+                            switch userProgramStatus {
+                            case ProgramStatusFirst.inProgress.rawValue:
+                                programLabel = "In progress"
+                            case ProgramStatusFirst.completed.rawValue:
+                                programLabel = "Completed"
+                            default:
+                                programLabel = ""
+                            }
+                        } catch {
+                            // Handle the error, log or present an error message
+                            print("Error getting user program status:", error.localizedDescription)
+                        }
+                    }
+            }
+            print("Active Lesson changed to \(newActiveLesson?.title ?? "nil")")
+           
+        }
+        .onAppear {
+            Task {
+                do {
+                    let authDataResult = try AuthenticationManager.shared.getAuthenticatedUser()
+                    let userLessons = try await UserManager.shared.getUserLessons(userId: authDataResult.uid)
+                    isLessonOneComplete = userLessons.contains { $0.lessonId == 1 }
+                    isLessonTwoComplete = userLessons.contains { $0.lessonId == 2 }
+                    isLessonThreeComplete = userLessons.contains { $0.lessonId == 3 }
+                    isLessonFourComplete = userLessons.contains { $0.lessonId == 4 }
+
+                    print("Completed lessons: \(userLessons.map { $0.lessonId })")
+                } catch {
+                    print("Error fetching user lessons:", error.localizedDescription)
+                }
+                if isLessonFourComplete {
+                        UserManager.shared.completeUserProgram(programId: program.id)
+                    }
+                Task {
+                        do {
+                            let authDataResult = try AuthenticationManager.shared.getAuthenticatedUser()
+                            let userProgramStatus = try await UserManager.shared.getUserProgramStatus(userId: authDataResult.uid, programId: program.id)
+
+                            switch userProgramStatus {
+                            case ProgramStatusFirst.inProgress.rawValue:
+                                programLabel = "In progress"
+                            case ProgramStatusFirst.completed.rawValue:
+                                programLabel = "Completed"
+                            default:
+                                programLabel = ""
+                            }
+                        } catch {
+                            // Handle the error, log or present an error message
+                            print("Error getting user program status:", error.localizedDescription)
+                        }
+                    }
+            }
+          
+        }
+        .task {
+            do {
+                let authDataResult = try AuthenticationManager.shared.getAuthenticatedUser()
+                let userLessons = try await UserManager.shared.getUserLessons(userId: authDataResult.uid)
+                isLessonOneComplete = userLessons.contains { $0.lessonId == 1 }
+                isLessonTwoComplete = userLessons.contains { $0.lessonId == 2 }
+                isLessonThreeComplete = userLessons.contains { $0.lessonId == 3 }
+                isLessonFourComplete = userLessons.contains { $0.lessonId == 4 }
+
+                print("Completed lessons: \(userLessons.map { $0.lessonId })")
+            } catch {
+                print("Error fetching user lessons:", error.localizedDescription)
+            }
+            
         }
         
-        
     }
-    
 }
 
 
 #Preview {
-    ProgramViewFirst()
+    ProgramViewFirst(program: ProgramStructure(id: 1, title: "String?", status: "String?", image: "puppy"))
 }
+

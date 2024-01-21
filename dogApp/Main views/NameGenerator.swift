@@ -8,7 +8,8 @@
 import SwiftUI
 
 struct NameGenerator: View {
-    
+    @StateObject private var viewModel = ProgramViewModel()
+
     @State private var generatedName: String? = nil
     @State var selectedGenderMale: Bool = true
     @State var selectedGenderFemale: Bool = true
@@ -49,6 +50,7 @@ struct NameGenerator: View {
                 Spacer()
                 
                 //button
+                
                 
                 GetNamesButton(text: "Generate name", action: {
                     getName()

@@ -21,7 +21,11 @@ struct QuizButtonTrue: View {
         }) {
             ZStack(alignment: .leading) {
                 RoundedRectangle(cornerRadius: 8)
-                    .fill(isTapped ? Color.green : color)
+                    .fill(isTapped ? Color.green : .white)
+                    . overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .strokeBorder(Color .black, lineWidth: 1))
+                
                 Text(text)
                     .foregroundColor(isTapped ? .white : .black)
                     .font(.custom("Poppins-Regular", size: 14))

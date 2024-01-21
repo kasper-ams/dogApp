@@ -8,11 +8,36 @@
 import SwiftUI
 
 struct LessonButton: View {
+    let activeColor = Color(red: 0, green: 0.43, blue: 0.47)
+
+    let text: String
+    let isComplete: Bool
+    let action: () -> Void
+    let isPreviousTaskComplete: Bool
+    
+    var isButtonEnabled: Bool {
+           return isComplete || isPreviousTaskComplete
+       }
+    
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        Button(action: {
+            action()
+        }) {
+            HStack {
+                Image(systemName: isComplete ? "checkmark" : (isPreviousTaskComplete ? "circle" : "lock" ))
+                    .foregroundColor(isComplete ? .black : (isPreviousTaskComplete ? activeColor : .gray))
+                Text(text)
+                    .font(Font.custom("Poppins", size: 16))
+                    .foregroundColor(isComplete ? .black : (isPreviousTaskComplete ? activeColor : .gray))
+            }
+        }
+        .disabled(!isButtonEnabled)
     }
 }
 
-#Preview {
-    LessonButton()
-}
+//#Preview {
+//    LessonButton(text: "Sit", image: "circle", isSelected: constant(false)) {
+//        return
+//    }
+//}
+

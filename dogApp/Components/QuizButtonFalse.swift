@@ -23,7 +23,11 @@ struct QuizButtonFalse: View {
         }) {
             ZStack(alignment: .leading) {
                 RoundedRectangle(cornerRadius: 8)
-                    .fill(color)
+                    .fill(.white)
+                    . overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .strokeBorder(Color .black, lineWidth: 1))
+                
                 Text(text)
                     .foregroundColor(isTapped ? .gray : .black)
                     .strikethrough(isTapped, color: .gray)

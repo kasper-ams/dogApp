@@ -19,45 +19,61 @@ struct ProgramViewLeash: View {
     let colorBottom = Color(red: 0.53, green: 0.75, blue: 0.83)
     let activeColor = Color(red: 0, green: 0.43, blue: 0.47)
     let bgColor = Color(red: 250.0/255.0, green: 250.0/255.0, blue: 250.0/255.0)
-
-    @State private var programSheetLeashIntro = false
-    @State private var programSheetLeashStartStop = false
-    @State private var programSheetLeashDirection = false
-    @State private var programSheetLeashLoose = false
-    @State private var programSheetLeashHeel = false
-    @State private var programSheetLeashQuiz = false
-
-
-    @AppStorage("isLeashIntroComplete") var isLeashIntroComplete = false
-    @AppStorage("isLeashStartStopComplete") var isLeashStartStopComplete = false
-    @AppStorage("isLeashDirectionComplete") var isLeashDirectionComplete = false
-    @AppStorage("isLeashLooseComplete") var isLeashLooseComplete = false
-    @AppStorage("isLeashHeelComplete") var isLeashHeelComplete = false
-    @AppStorage("isLeashQuizComplete") var isLeashQuizComplete = false
-
-    @AppStorage("LeashButtonLabel") var leashButtonLabel = "Enroll"
-
-    @AppStorage("programStatusLeash") var programStatusLeash = ProgramStatusLeash.notStarted.rawValue
     
-    // Helper function to determine the active task
-    func activeTask() -> String {
-        if !isLeashIntroComplete {
-            return "Leash and collar introduction"
-        } else if !isLeashStartStopComplete {
-            return "Start and stop"
-        } else if !isLeashDirectionComplete {
-            return "Direction change"
-        } else if !isLeashLooseComplete {
-            return "Loose leash walking"
-        } else if !isLeashHeelComplete {
-            return "Heel"
-        } else if !isLeashQuizComplete {
-            return "Quiz"
+    
+    
+    @StateObject private var viewModel = ProgramViewModel()
+    let program: ProgramStructure
+    @State private var programSheetStructures: [ProgramSheetStructure] = ProgramSheetDatabase.programs
+    @State private var selectedLesson: ProgramSheetStructure? = nil
+    
+    @State private var isLessonFiveComplete: Bool = false
+    @State private var isLessonSixComplete: Bool = false
+    @State private var isLessonSevenComplete: Bool = false
+    @State private var isLessonEightComplete: Bool = false
+    @State private var isLessonNineComplete: Bool = false
+
+    
+    @State private var label = "Start lesson"
+    @State private var programLabel = ""
+    @State private var programSheetActive: ProgramSheetStructure? = nil
+    
+    @State private var isQuizSheetPresented = false
+
+    
+    private func activeTask() -> String {
+        if !isLessonFiveComplete {
+            return "LeashAndCollarIntroduction"
+        } else if !isLessonSixComplete {
+            return "StartAndStop"
+        } else if !isLessonSevenComplete {
+            return "DirectionChange"
+        } else if !isLessonEightComplete {
+            return "LooseLeashWalking"
+        } else if !isLessonNineComplete {
+                return "Heel"
         } else {
             return "AllTasksCompleted"
         }
     }
-
+    
+    private func isLessonComplete(for programSheet: ProgramSheetStructure) -> Bool {
+        switch programSheet.id {
+        case 5:
+            return isLessonFiveComplete
+        case 6:
+            return isLessonSixComplete
+        case 7:
+            return isLessonSevenComplete
+        case 8:
+            return isLessonEightComplete
+        case 9:
+            return isLessonNineComplete
+        default:
+            return false
+        }
+    }
+    
     
     var body: some View {
         
@@ -72,21 +88,22 @@ struct ProgramViewLeash: View {
                     VStack(spacing: -8) {
                         
                         //header
+                        
                         ZStack {
                             RoundedRectangle(cornerRadius: 0)
                                 .fill(LinearGradient(colors: [colorTop, colorBottom], startPoint: .top, endPoint: .bottom))
-                                .frame(width: /*@START_MENU_TOKEN@*/.infinity/*@END_MENU_TOKEN@*/, height: 164)
-                                
-                                
+                                .frame(width: .infinity, height: 164)
+                            
+                            
                             
                             HStack(alignment: .bottom) {
                                 VStack(alignment: .leading) {
-                                    if programStatusLeash == ProgramStatusLeash.inProgress.rawValue {
-                                        Text("In progress")
-                                            .font(.custom("SignikaNegative-SemiBold", size: 16))
-                                            .foregroundColor(.white)
-                                            .padding(.bottom, 32)
-                                    } 
+                                
+                                    Text(programLabel)
+                                        .font(.custom("SignikaNegative-SemiBold", size: 16))
+                                        .foregroundColor(.white)
+                                        .padding(.bottom, 32)
+                                    
                                     Text("Leash walking")
                                         .font(.custom("SignikaNegative-SemiBold", size: 24))
                                         .foregroundColor(.white)
@@ -108,15 +125,16 @@ struct ProgramViewLeash: View {
                         ZStack {
                             RoundedRectangle(cornerRadius: 8)
                                 .fill(Color .white)
-                                
-                                
+                            
+                            
                             VStack(alignment: .leading, spacing: 24) {
                                 
-                                if isLeashIntroComplete && isLeashStartStopComplete && isLeashDirectionComplete && isLeashLooseComplete && isLeashHeelComplete && isLeashQuizComplete {
+                                if programLabel == "Completed" {
+                                    
                                     ZStack(alignment: .leading) {
                                         RoundedRectangle(cornerRadius: 8)
                                             .fill(Color(red: 0.91, green: 1, blue: 0.94))
-                                            .frame(width: /*@START_MENU_TOKEN@*/.infinity/*@END_MENU_TOKEN@*/, height: 36)
+                                            .frame(width: .infinity, height: 36)
                                         VStack(alignment: .leading) {
                                             HStack(alignment: .center, spacing: 2) {
                                                 Image(systemName: "checkmark.seal")
@@ -127,28 +145,21 @@ struct ProgramViewLeash: View {
                                                 
                                             }
                                             .padding()
-                                
                                             
-                                            //reset button
-//                                                Button(action: {
-//                                                    isLeashIntroComplete = false
-//                                                    isLeashStartStopComplete = false
-//                                                    isLeashDirectionComplete = false
-//                                                    isLeashLooseComplete = false
-//                                                    isLeashHeelComplete = false
-//                                                    isLeashQuizComplete = false
-//                                                    programStatusLeash = ProgramStatusLeash.notStarted.rawValue
-//                                                    print(programStatusLeash)
-//                                                }, label: {
-//                                                    Text("Reset")
-//                                                })
+//                                            // debug: reset button
+//                                            Button(action: {
+//                                                isLessonFiveComplete = false
+//                                                isLessonSixComplete = false
+//                                                isLessonSevenComplete = false
+//                                                isLessonEightComplete = false
+//                                                isLessonNineComplete = false
+//                                                
+//                                            }, label: {
+//                                                Text("Reset")
+//                                            })
                                         }
                                     }
-                        
-                                    
                                 }
-                                
-                                
                                 
                                 Text("Teaching a dog to walk on a leash is an important skill for both the dog and the owner. This program will help you achieve a well-behaved and leash-trained dog.")
                                     .font(.custom("Poppins-Regular", size: 16))
@@ -159,181 +170,265 @@ struct ProgramViewLeash: View {
                                 Text("Curriculum")
                                     .font(.custom("SignikaNegative-SemiBold", size: 18))
                                 
-                                //list of items
+                                //list of lessons
                                 VStack(alignment: .leading, spacing: 12) {
                                     
-                                    Button(action: {
-                                        if isLeashIntroComplete || isLeashStartStopComplete || isLeashDirectionComplete || isLeashLooseComplete {
-                                                programSheetLeashIntro.toggle()
+                                    ForEach(programSheetStructures[4..<9]) { programSheet in
+                                        let index = programSheetStructures.firstIndex(of: programSheet) ?? 0
+                                        let isPreviousTaskComplete = index > 4 ? isLessonComplete(for: programSheetStructures[index - 1]) : true
+                                        
+                                        LessonButton(
+                                            text: programSheet.title,
+                                            isComplete: isLessonComplete(for: programSheet),
+                                            action: {
+                                                selectedLesson = programSheet
+                                            },
+                                            isPreviousTaskComplete: isPreviousTaskComplete
+                                        )
+                                        .sheet(item: $selectedLesson) { lesson in
+                                            ProgramSheetTemplate(program: lesson)
                                         }
-                                    }) {
-                                        HStack {
-                                            Image(systemName: isLeashIntroComplete ? "checkmark" : "circle")
-                                                .foregroundColor(isLeashIntroComplete ? .black : activeColor)
-                                            Text("Leash and collar introduction")
-                                                .font(Font.custom("Poppins", size: 16))
-                                                .foregroundColor(isLeashIntroComplete ? .black : activeColor)
-                                        }
+                                        Divider()
+                                        
                                     }
-                                    Divider()
-                                    Button(action: {
-                                        if isLeashStartStopComplete || isLeashIntroComplete {
-                                            programSheetLeashStartStop.toggle()
-                                        }
-                                    }) {
+                                    Button {
+                                        isQuizSheetPresented = true
+                                    } label: {
                                         HStack {
-                                            Image(systemName: isLeashStartStopComplete ? "checkmark" : (isLeashIntroComplete ? "circle" : "lock"))
-                                                .foregroundColor(isLeashStartStopComplete ? .black : (isLeashIntroComplete ? activeColor : .gray))
-                                            Text("Start and stop")
-                                                .font(Font.custom("Poppins", size: 16))
-                                                .foregroundColor(isLeashStartStopComplete ? .black : (isLeashIntroComplete ? activeColor : .gray))
-                                        }
-                                    }
-                                    Divider()
-                                    
-                                    Button(action: {
-                                        if isLeashDirectionComplete || isLeashStartStopComplete  {
-                                            programSheetLeashDirection.toggle()
-                                        }
-                                    }) {
-                                        HStack {
-                                            Image(systemName: isLeashDirectionComplete ? "checkmark" : (isLeashStartStopComplete ? "circle" : "lock"))
-                                                .foregroundColor(isLeashDirectionComplete ? .black : (isLeashStartStopComplete ? activeColor : .gray))
-                                            Text("Direction change")
-                                                .font(Font.custom("Poppins", size: 16))
-                                                .foregroundColor(isLeashDirectionComplete ? .black : (isLeashStartStopComplete ? activeColor : .gray))
-                                        }
-                                    }
-                                    
-                                    
-                                    Divider()
-                                    
-                                    Button(action: {
-                                        if isLeashDirectionComplete   {
-                                            programSheetLeashLoose.toggle()
-                                        }
-                                    }) {
-                                        HStack {
-                                            Image(systemName: isLeashLooseComplete ? "checkmark" : (isLeashDirectionComplete ? "circle" : "lock"))
-                                                .foregroundColor(isLeashLooseComplete ? .black : (isLeashDirectionComplete ? activeColor : .gray))
-                                            Text("Loose leash walking")
-                                                .font(Font.custom("Poppins", size: 16))
-                                                .foregroundColor(isLeashLooseComplete ? .black : (isLeashDirectionComplete ? activeColor : .gray))
-                                        }
-                                    }
-                                    
-                                    Divider()
-                             
-                                    Button(action: {
-                                        if isLeashLooseComplete   {
-                                            programSheetLeashHeel.toggle()
-                                        }
-                                    }) {
-                                        HStack {
-                                            Image(systemName: isLeashHeelComplete ? "checkmark" : (isLeashLooseComplete ? "circle" : "lock"))
-                                                .foregroundColor(isLeashHeelComplete ? .black : (isLeashLooseComplete ? activeColor : .gray))
-                                            Text("Heel")
-                                                .font(Font.custom("Poppins", size: 16))
-                                                .foregroundColor(isLeashHeelComplete ? .black : (isLeashLooseComplete ? activeColor : .gray))
-                                        }
-                                    }
-                                    
-                                    Divider()
-                                    
-                                    Button(action: {
-                                        if isLeashHeelComplete   {
-                                            programSheetLeashQuiz.toggle()
-                                        }
-                                    }) {
-                                        HStack {
-                                            Image(systemName: isLeashQuizComplete ? "checkmark" : (isLeashHeelComplete ? "circle" : "lock"))
-                                                .foregroundColor(isLeashQuizComplete ? .black : (isLeashHeelComplete ? activeColor : .gray))
+                                            Image(systemName: programLabel == "Completed" ? "checkmark" : (isLessonNineComplete ? "circle" : "lock" ))
+                                            
                                             Text("Quiz")
-                                                .font(Font.custom("Poppins", size: 16))
-                                                .foregroundColor(isLeashQuizComplete ? .black : (isLeashHeelComplete ? activeColor : .gray))
                                         }
+                                    }
+                                    .disabled(!isLessonNineComplete)
+                                    .foregroundColor(programLabel == "Completed" ? .black : (isLessonNineComplete ? activeColor : .gray))
+                                    .sheet(isPresented: $isQuizSheetPresented) {
+                                        ProgramSheetLeashQuiz(program: ProgramStructure(id: 2, title: "String?", status: "String?", image: "puppy"))
                                     }
                                 }
-                                
-                               
                                 
                                 Spacer()
                                 
                                 
                                 //main button
                                 ZStack {
-                                    GetNamesButton(text: leashButtonLabel) {
+                                    GetNamesButton(text: label) {
+                                        let activeTaskID: Int
                                         switch activeTask() {
-                                        case "Leash and collar introduction":
-                                            programSheetLeashIntro.toggle()
-                                        case "Start and stop":
-                                            programSheetLeashStartStop.toggle()
-                                        case "Direction change":
-                                            programSheetLeashDirection.toggle()
-                                        case "Loose leash walking":
-                                            programSheetLeashLoose.toggle()
+                                        case "LeashAndCollarIntroduction":
+                                            activeTaskID = 5
+                                        case "StartAndStop":
+                                            activeTaskID = 6
+                                        case "DirectionChange":
+                                            activeTaskID = 7
+                                        case "LooseLeashWalking":
+                                            activeTaskID = 8
                                         case "Heel":
-                                            programSheetLeashHeel.toggle()
-                                        case "Quiz":
-                                            programSheetLeashQuiz.toggle()
+                                            activeTaskID = 9
                                         default:
-                                            Text("All done!")
-                                            
+                                            activeTaskID = 5 // Set a default ID or handle this case appropriately
                                         }
-                                        leashButtonLabel = "Continue"
-                                        programStatusLeash = ProgramStatusLeash.inProgress.rawValue
-                                        print(programStatusLeash)
+
+                                        selectedLesson = programSheetStructures.first { $0.id == activeTaskID }
+
+                                        let hasNoCompletedLessons = !isLessonFiveComplete && !isLessonSixComplete && !isLessonSevenComplete && !isLessonEightComplete && !isLessonNineComplete
+                                        
+                                        label = hasNoCompletedLessons ? "Start lesson" : "Continue"
+                                        
+                                        if hasNoCompletedLessons {
+                                            UserManager.shared.addUserProgram(programId: program.id)
+                                        }
                                     }
-                                    .opacity(isLeashIntroComplete && isLeashStartStopComplete && isLeashDirectionComplete && isLeashLooseComplete && isLeashHeelComplete && isLeashQuizComplete ? 0 : 1)
+                                    .opacity(isLessonFiveComplete && isLessonSixComplete && isLessonSevenComplete && isLessonEightComplete && isLessonNineComplete ? 0 : 1)
                                     
-                                    
-                                    
-                                    
+                                    if isLessonNineComplete {
+                                        
+                                        GetNamesButton(text: label) {
+                                            isQuizSheetPresented = true
+                                        }
+                                        .opacity(programLabel != "Completed" ? 1 : 0)
+                                    }
                                 }
-                                
-                                
+                                .sheet(item: $selectedLesson) { lesson in
+                                    ProgramSheetTemplate(program: lesson)
+                                }
                             }
                             .padding()
-                            
-                            
-                            
                         }
                         
                     }
                 }
-        }
+            }
             .navigationViewStyle(StackNavigationViewStyle())
-            
-            
-    }
-        .sheet(isPresented: $programSheetLeashIntro) {
-            ProgramSheetLeashIntro()
         }
-        .sheet(isPresented: $programSheetLeashStartStop) {
-            ProgramSheetLeashStartStop()
-        }
-        .sheet(isPresented: $programSheetLeashDirection) {
-            ProgramSheetLeashDirection()
-        }
-        .sheet(isPresented: $programSheetLeashLoose) {
-            ProgramSheetLeashLoose()
-        }
-        .sheet(isPresented: $programSheetLeashHeel) {
-            ProgramSheetLeashHeel()
-        }
-        .sheet(isPresented: $programSheetLeashQuiz) {
-            ProgramSheetLeashQuiz()
-                .onDisappear {
-                    if isLeashQuizComplete {
-                        programStatusLeash = ProgramStatusLeash.completed.rawValue
-                        print(programStatusLeash)
-                    }
+        
+        .onChange(of: isQuizSheetPresented) { _ in
+            Task {
+                do {
+                    let authDataResult = try AuthenticationManager.shared.getAuthenticatedUser()
+                    let userLessons = try await UserManager.shared.getUserLessons(userId: authDataResult.uid)
+                    isLessonFiveComplete = userLessons.contains { $0.lessonId == 5 }
+                    isLessonSixComplete = userLessons.contains { $0.lessonId == 6 }
+                    isLessonSevenComplete = userLessons.contains { $0.lessonId == 7 }
+                    isLessonEightComplete = userLessons.contains { $0.lessonId == 8 }
+                    isLessonNineComplete = userLessons.contains { $0.lessonId == 9 }
+
+                    print("Completed lessons: \(userLessons.map { $0.lessonId })")
+                } catch {
+                    print("Error fetching user lessons:", error.localizedDescription)
                 }
+
+                Task {
+                        do {
+                            let authDataResult = try AuthenticationManager.shared.getAuthenticatedUser()
+                            let userProgramStatus = try await UserManager.shared.getUserProgramStatus(userId: authDataResult.uid, programId: program.id)
+
+                            switch userProgramStatus {
+                            case ProgramStatusLeash.inProgress.rawValue:
+                                programLabel = "In progress"
+                            case ProgramStatusLeash.completed.rawValue:
+                                programLabel = "Completed"
+                            default:
+                                programLabel = ""
+                            }
+                        } catch {
+                            print("Error getting user program status:", error.localizedDescription)
+                        }
+                    }
+            }
+            
         }
+        .onChange(of: selectedLesson) { _ in
+            Task {
+                do {
+                    let authDataResult = try AuthenticationManager.shared.getAuthenticatedUser()
+                    let userLessons = try await UserManager.shared.getUserLessons(userId: authDataResult.uid)
+                    isLessonFiveComplete = userLessons.contains { $0.lessonId == 5 }
+                    isLessonSixComplete = userLessons.contains { $0.lessonId == 6 }
+                    isLessonSevenComplete = userLessons.contains { $0.lessonId == 7 }
+                    isLessonEightComplete = userLessons.contains { $0.lessonId == 8 }
+                    isLessonNineComplete = userLessons.contains { $0.lessonId == 9 }
+
+                    print("Completed lessons: \(userLessons.map { $0.lessonId })")
+                } catch {
+                    print("Error fetching user lessons:", error.localizedDescription)
+                }
+
+                Task {
+                        do {
+                            let authDataResult = try AuthenticationManager.shared.getAuthenticatedUser()
+                            let userProgramStatus = try await UserManager.shared.getUserProgramStatus(userId: authDataResult.uid, programId: program.id)
+
+                            switch userProgramStatus {
+                            case ProgramStatusLeash.inProgress.rawValue:
+                                programLabel = "In progress"
+                            case ProgramStatusLeash.completed.rawValue:
+                                programLabel = "Completed"
+                            default:
+                                programLabel = ""
+                            }
+                        } catch {
+                            print("Error getting user program status:", error.localizedDescription)
+                        }
+                    }
+            }
+            
+        }
+        .onChange(of: programSheetActive) { newActiveLesson in
+            Task {
+                do {
+                    let authDataResult = try AuthenticationManager.shared.getAuthenticatedUser()
+                    let userLessons = try await UserManager.shared.getUserLessons(userId: authDataResult.uid)
+                    isLessonFiveComplete = userLessons.contains { $0.lessonId == 5 }
+                    isLessonSixComplete = userLessons.contains { $0.lessonId == 6 }
+                    isLessonSevenComplete = userLessons.contains { $0.lessonId == 7 }
+                    isLessonEightComplete = userLessons.contains { $0.lessonId == 8 }
+                    isLessonNineComplete = userLessons.contains { $0.lessonId == 9 }
+                    
+                    print("Completed lessons: \(userLessons.map { $0.lessonId })")
+                } catch {
+                    print("Error fetching user lessons:", error.localizedDescription)
+                }
+
+                Task {
+                        do {
+                            let authDataResult = try AuthenticationManager.shared.getAuthenticatedUser()
+                            let userProgramStatus = try await UserManager.shared.getUserProgramStatus(userId: authDataResult.uid, programId: program.id)
+
+                            switch userProgramStatus {
+                            case ProgramStatusLeash.inProgress.rawValue:
+                                programLabel = "In progress"
+                            case ProgramStatusLeash.completed.rawValue:
+                                programLabel = "Completed"
+                            default:
+                                programLabel = ""
+                            }
+                        } catch {
+                            print("Error getting user program status:", error.localizedDescription)
+                        }
+                    }
+            }
+            print("Active Lesson changed to \(newActiveLesson?.title ?? "nil")")
+           
+        }
+        .onAppear {
+            Task {
+                do {
+                    let authDataResult = try AuthenticationManager.shared.getAuthenticatedUser()
+                    let userLessons = try await UserManager.shared.getUserLessons(userId: authDataResult.uid)
+                    isLessonFiveComplete = userLessons.contains { $0.lessonId == 5 }
+                    isLessonSixComplete = userLessons.contains { $0.lessonId == 6 }
+                    isLessonSevenComplete = userLessons.contains { $0.lessonId == 7 }
+                    isLessonEightComplete = userLessons.contains { $0.lessonId == 8 }
+                    isLessonNineComplete = userLessons.contains { $0.lessonId == 9 }
+
+                    print("Completed lessons: \(userLessons.map { $0.lessonId })")
+                } catch {
+                    print("Error fetching user lessons:", error.localizedDescription)
+                }
+
+                Task {
+                        do {
+                            let authDataResult = try AuthenticationManager.shared.getAuthenticatedUser()
+                            let userProgramStatus = try await UserManager.shared.getUserProgramStatus(userId: authDataResult.uid, programId: program.id)
+
+                            switch userProgramStatus {
+                            case ProgramStatusLeash.inProgress.rawValue:
+                                programLabel = "In progress"
+                            case ProgramStatusLeash.completed.rawValue:
+                                programLabel = "Completed"
+                            default:
+                                programLabel = ""
+                            }
+                        } catch {
+                            // Handle the error, log or present an error message
+                            print("Error getting user program status:", error.localizedDescription)
+                        }
+                    }
+            }
+          
+        }
+        .task {
+            do {
+                let authDataResult = try AuthenticationManager.shared.getAuthenticatedUser()
+                let userLessons = try await UserManager.shared.getUserLessons(userId: authDataResult.uid)
+                isLessonFiveComplete = userLessons.contains { $0.lessonId == 5 }
+                isLessonSixComplete = userLessons.contains { $0.lessonId == 6 }
+                isLessonSevenComplete = userLessons.contains { $0.lessonId == 7 }
+                isLessonEightComplete = userLessons.contains { $0.lessonId == 8 }
+                isLessonNineComplete = userLessons.contains { $0.lessonId == 9 }
+
+                print("Completed lessons: \(userLessons.map { $0.lessonId })")
+            } catch {
+                print("Error fetching user lessons:", error.localizedDescription)
+            }
+            
+        }
+        
         
     }
 }
 
 #Preview {
-    ProgramViewLeash()
+    ProgramViewOffice(program: ProgramStructure(id: 2, title: "String?", status: "String?", image: "puppy"))
 }

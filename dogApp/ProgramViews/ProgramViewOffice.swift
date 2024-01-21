@@ -20,37 +20,37 @@ struct ProgramViewOffice: View {
     let activeColor = Color(red: 0, green: 0.43, blue: 0.47)
     let bgColor = Color(red: 250.0/255.0, green: 250.0/255.0, blue: 250.0/255.0)
     
-    @State private var programSheetOfficeDesensitization = false
-    @State private var programSheetOfficePlace = false
-    @State private var programSheetOfficeGreet = false
-    @State private var programSheetOfficeSpace = false
-    @State private var programSheetOfficeSocial = false
-    @State private var programSheetOfficeQuiz = false
-
-    @AppStorage("isOfficeDesensitizationComplete") var isOfficeDesensitizationComplete = false
-    @AppStorage("isOfficePlaceComplete") var isOfficePlaceComplete = false
-    @AppStorage("isOfficeGreetComplete") var isOfficeGreetComplete = false
-    @AppStorage("isOfficeSpaceComplete") var isOfficeSpaceComplete = false
-    @AppStorage("isOfficeSocialComplete") var isOfficeSocialComplete = false
-    @AppStorage("isOfficeQuizComplete") var isOfficeQuizComplete = false
-//
-    @AppStorage("OfficeButtonLabel") var officeButtonLabel = "Enroll"
+    @StateObject private var viewModel = ProgramViewModel()
+    let program: ProgramStructure
+    @State private var programSheetStructures: [ProgramSheetStructure] = ProgramSheetDatabase.programs
+    @State private var selectedLesson: ProgramSheetStructure? = nil
     
-    @AppStorage("programStatusOffice") var programStatusOffice = ProgramStatusOffice.notStarted.rawValue
+    @State private var isLessonTenComplete: Bool = false
+    @State private var isLessonElevenComplete: Bool = false
+    @State private var isLessonTwelveComplete: Bool = false
+    @State private var isLessonThirteenComplete: Bool = false
+    @State private var isLessonFourteenComplete: Bool = false
+    @State private var isLessonQuizComplete: Bool = false
 
-    // Helper function to determine the active task
-    func activeTask() -> String {
-        if !isOfficeDesensitizationComplete {
-            return "Office Desensitization"
-        } else if !isOfficePlaceComplete {
+    
+    @State private var label = "Start lesson"
+    @State private var programLabel = ""
+    @State private var programSheetActive: ProgramSheetStructure? = nil
+    @State private var isQuizSheetPresented = false
+    
+    
+    private func activeTask() -> String {
+        if !isLessonTenComplete {
+            return "OfficeDesensitization"
+        } else if !isLessonElevenComplete {
             return "Place"
-        } else if !isOfficeGreetComplete {
-            return "Greet politey"
-        } else if !isOfficeSpaceComplete {
-            return "Safe space"
-        } else if !isOfficeSocialComplete {
+        } else if !isLessonTwelveComplete {
+            return "GreePolitely"
+        } else if !isLessonThirteenComplete {
+            return "SafeSpace"
+        } else if !isLessonFourteenComplete {
             return "Socialization"
-        } else if !isOfficeQuizComplete {
+        } else if !isLessonQuizComplete {
             return "Quiz"
         } else {
             return "AllTasksCompleted"
@@ -58,8 +58,26 @@ struct ProgramViewOffice: View {
     }
     
     
+    private func isLessonComplete(for programSheet: ProgramSheetStructure) -> Bool {
+        switch programSheet.id {
+        case 10:
+            return isLessonTenComplete
+        case 11:
+            return isLessonElevenComplete
+        case 12:
+            return isLessonTwelveComplete
+        case 13:
+            return isLessonThirteenComplete
+        case 14:
+            return isLessonFourteenComplete
+        default:
+            return false
+        }
+    }
+    
+    
     var body: some View {
-      
+        
         ZStack(alignment: .topTrailing) {
             
             bgColor.ignoresSafeArea()
@@ -75,17 +93,17 @@ struct ProgramViewOffice: View {
                             RoundedRectangle(cornerRadius: 0)
                                 .fill(LinearGradient(colors: [colorTop, colorBottom], startPoint: .top, endPoint: .bottom))
                                 .frame(width: /*@START_MENU_TOKEN@*/.infinity/*@END_MENU_TOKEN@*/, height: 164)
-                                
-                                
+                            
+                            
                             
                             HStack(alignment: .bottom) {
                                 VStack(alignment: .leading) {
-                                    if programStatusOffice == ProgramStatusOffice.inProgress.rawValue {
-                                        Text("In progress")
-                                            .font(.custom("SignikaNegative-SemiBold", size: 16))
-                                            .foregroundColor(.white)
-                                            .padding(.bottom, 32)
-                                    }
+                                    
+                                    Text(programLabel)
+                                        .font(.custom("SignikaNegative-SemiBold", size: 16))
+                                        .foregroundColor(.white)
+                                        .padding(.bottom, 32)
+                                    
                                     Text("Office training")
                                         .font(.custom("SignikaNegative-SemiBold", size: 24))
                                         .foregroundColor(.white)
@@ -107,11 +125,11 @@ struct ProgramViewOffice: View {
                         ZStack {
                             RoundedRectangle(cornerRadius: 8)
                                 .fill(Color .white)
-                                
-                                
+                            
+                            
                             VStack(alignment: .leading, spacing: 24) {
                                 
-                                if isOfficeDesensitizationComplete && isOfficePlaceComplete && isOfficeSpaceComplete && isOfficeSocialComplete  && isOfficeQuizComplete {
+                                if programLabel == "Completed" {
                                     ZStack(alignment: .leading) {
                                         RoundedRectangle(cornerRadius: 8)
                                             .fill(Color(red: 0.91, green: 1, blue: 0.94))
@@ -126,26 +144,12 @@ struct ProgramViewOffice: View {
                                                 
                                             }
                                             .padding()
-                                
                                             
-                                            //reset button
-//                                                Button(action: {
-//                                                    isOfficeDesensitizationComplete = false
-//                                                    isOfficePlaceComplete = false
-//                                                    isOfficeGreetComplete = false
-//                                                    isOfficeSpaceComplete = false
-//                                                    isOfficeSocialComplete = false
-//                                                    isOfficeQuizComplete = false
-//                                                    programStatusOffice = ProgramStatusOffice.notStarted.rawValue
-//                                                    print(programStatusOffice)
-//                                                }, label: {
-//                                                    Text("Reset")
-//                                                })
+                                                                                    
                                         }
                                     }
-                                 
+                                    
                                 }
-                                
                                 
                                 
                                 Text("Bringing your dog to office can be stressful for you both. Follow this program and handle it like a pro.")
@@ -157,177 +161,270 @@ struct ProgramViewOffice: View {
                                 Text("Curriculum")
                                     .font(.custom("SignikaNegative-SemiBold", size: 18))
                                 
-                                //list of items
+                                //list of lessons
                                 VStack(alignment: .leading, spacing: 12) {
                                     
-                                    Button(action: {
-                                        if isOfficeDesensitizationComplete || isOfficePlaceComplete /*|| isLeashDirectionComplete || isLeashLooseComplete*/ {
-                                            programSheetOfficeDesensitization.toggle()
+                                    ForEach(programSheetStructures[9..<14]) { programSheet in
+                                        let index = programSheetStructures.firstIndex(of: programSheet) ?? 0
+                                        let isPreviousTaskComplete = index > 9 ? isLessonComplete(for: programSheetStructures[index - 1]) : true
+                                        
+                                        LessonButton(
+                                            text: programSheet.title,
+                                            isComplete: isLessonComplete(for: programSheet),
+                                            action: {
+                                                selectedLesson = programSheet
+                                            },
+                                            isPreviousTaskComplete: isPreviousTaskComplete
+                                        )
+                                        .sheet(item: $selectedLesson) { lesson in
+                                            ProgramSheetTemplate(program: lesson)
                                         }
-                                    }) {
-                                        HStack {
-                                            Image(systemName: isOfficeDesensitizationComplete ? "checkmark" : "circle")
-                                                .foregroundColor(isOfficeDesensitizationComplete ? .black : activeColor)
-                                            Text("Office desensitization")
-                                                .font(Font.custom("Poppins", size: 16))
-                                                .foregroundColor(isOfficeDesensitizationComplete ? .black : activeColor)
-                                        }
-                                    }
-                                    Divider()
-                                    Button(action: {
-                                        if isOfficeDesensitizationComplete || isOfficePlaceComplete {
-                                            programSheetOfficePlace.toggle()
-                                        }
-                                    }) {
-                                        HStack {
-                                            Image(systemName: isOfficePlaceComplete ? "checkmark" : (isOfficeDesensitizationComplete ? "circle" : "lock"))
-                                                .foregroundColor(isOfficePlaceComplete ? .black : (isOfficeDesensitizationComplete ? activeColor : .gray))
-                                            Text("Place")
-                                                .font(Font.custom("Poppins", size: 16))
-                                                .foregroundColor(isOfficePlaceComplete ? .black : (isOfficeDesensitizationComplete ? activeColor : .gray))
-                                        }
-                                    }
-                                    Divider()
-                                    
-                                    Button(action: {
-                                        if isOfficePlaceComplete || isOfficeGreetComplete  {
-                                            programSheetOfficeGreet.toggle()
-                                        }
-                                    }) {
-                                        HStack {
-                                            Image(systemName: isOfficeGreetComplete ? "checkmark" : (isOfficePlaceComplete ? "circle" : "lock"))
-                                                .foregroundColor(isOfficeGreetComplete ? .black : (isOfficePlaceComplete ? activeColor : .gray))
-                                            Text("Greet politely")
-                                                .font(Font.custom("Poppins", size: 16))
-                                                .foregroundColor(isOfficeGreetComplete ? .black : (isOfficePlaceComplete ? activeColor : .gray))
-                                        }
+                                        Divider()
                                     }
                                     
-                                    
-                                    Divider()
-                                    
-                                    Button(action: {
-                                        if isOfficeGreetComplete   {
-                                            programSheetOfficeSpace.toggle()
-                                        }
-                                    }) {
+                                    Button {
+                                        isQuizSheetPresented = true
+                                    } label: {
                                         HStack {
-                                            Image(systemName: isOfficeSpaceComplete ? "checkmark" : (isOfficeGreetComplete ? "circle" : "lock"))
-                                                .foregroundColor(isOfficeSpaceComplete ? .black : (isOfficeGreetComplete ? activeColor : .gray))
-                                            Text("Safe space")
-                                                .font(Font.custom("Poppins", size: 16))
-                                                .foregroundColor(isOfficeSpaceComplete ? .black : (isOfficeGreetComplete ? activeColor : .gray))
-                                        }
-                                    }
-                                    
-                                    Divider()
-                             
-                                    Button(action: {
-                                        if isOfficeSpaceComplete   {
-                                            programSheetOfficeSocial.toggle()
-                                        }
-                                    }) {
-                                        HStack {
-                                            Image(systemName: isOfficeSocialComplete ? "checkmark" : (isOfficeSpaceComplete ? "circle" : "lock"))
-                                                .foregroundColor(isOfficeSocialComplete ? .black : (isOfficeSpaceComplete ? activeColor : .gray))
-                                            Text("Socialization")
-                                                .font(Font.custom("Poppins", size: 16))
-                                                .foregroundColor(isOfficeSocialComplete ? .black : (isOfficeSpaceComplete ? activeColor : .gray))
-                                        }
-                                    }
-                                    
-                                    Divider()
-                                    
-                                    Button(action: {
-                                        if isOfficeSocialComplete   {
-                                            programSheetOfficeQuiz.toggle()
-                                        }
-                                    }) {
-                                        HStack {
-                                            Image(systemName: isOfficeQuizComplete ? "checkmark" : (isOfficeSocialComplete ? "circle" : "lock"))
-                                                .foregroundColor(isOfficeQuizComplete ? .black : (isOfficeSocialComplete ? activeColor : .gray))
+                                            Image(systemName: programLabel == "Completed" ? "checkmark" : (isLessonFourteenComplete ? "circle" : "lock" ))
+                                            
                                             Text("Quiz")
-                                                .font(Font.custom("Poppins", size: 16))
-                                                .foregroundColor(isOfficeQuizComplete ? .black : (isOfficeSocialComplete ? activeColor : .gray))
                                         }
                                     }
+                                    .disabled(!isLessonFourteenComplete)
+                                    .foregroundColor(programLabel == "Completed" ? .black : (isLessonFourteenComplete ? activeColor : .gray))
+                                    .sheet(isPresented: $isQuizSheetPresented) {
+                                        ProgramSheetOfficeQuiz(program: ProgramStructure(id: 3, title: "String?", status: "String?", image: "puppy"))
+                                    }
+                                    
                                 }
                                 
-                               
                                 
                                 Spacer()
                                 
                                 
                                 //main button
                                 ZStack {
-                                    GetNamesButton(text: officeButtonLabel) {
+                                    GetNamesButton(text: label) {
+                                        let activeTaskID: Int
                                         switch activeTask() {
-                                        case "Office Desensitization":
-                                            programSheetOfficeDesensitization.toggle()
+                                        case "OfficeDesensitization":
+                                            activeTaskID = 10
                                         case "Place":
-                                            programSheetOfficePlace.toggle()
-                                        case "Safe space":
-                                            programSheetOfficeSpace.toggle()
-                                        case "Greet politey":
-                                            programSheetOfficeGreet.toggle()
+                                            activeTaskID = 11
+                                        case "GreePolitely":
+                                            activeTaskID = 12
+                                        case "SafeSpace":
+                                            activeTaskID = 13
                                         case "Socialization":
-                                            programSheetOfficeSocial.toggle()
-                                        case "Quiz":
-                                            programSheetOfficeQuiz.toggle()
+                                            activeTaskID = 14
                                         default:
-                                            Text("All done!")
-                                            
+                                            activeTaskID = 10 // Set a default ID or handle this case appropriately
                                         }
-                                        officeButtonLabel = "Continue"
-                                        programStatusOffice = ProgramStatusOffice.inProgress.rawValue
-                                        print(programStatusOffice)
+                                        
+                                        selectedLesson = programSheetStructures.first { $0.id == activeTaskID }
+                                        
+                                        let hasNoCompletedLessons = !isLessonTenComplete && !isLessonElevenComplete && !isLessonTwelveComplete && !isLessonThirteenComplete && !isLessonFourteenComplete
+                                        
+                                        label = hasNoCompletedLessons ? "Start lesson" : "Continue"
+                                        
+                                        if hasNoCompletedLessons {
+                                            UserManager.shared.addUserProgram(programId: program.id)
+                                        }
                                     }
-                                    .opacity(isOfficeDesensitizationComplete && isOfficePlaceComplete && isOfficeSpaceComplete && isOfficeSocialComplete  && isOfficeQuizComplete ? 0 : 1)
-                                    
-                                    
+                                    .opacity(isLessonTenComplete && isLessonElevenComplete && isLessonTwelveComplete && isLessonThirteenComplete && isLessonFourteenComplete ? 0 : 1)
+                                   
+                                    if isLessonFourteenComplete {
+                                        
+                                        GetNamesButton(text: label) {
+                                            isQuizSheetPresented = true
+                                        }
+                                        .opacity(programLabel != "Completed" ? 1 : 0)
+                                    }
                                 }
-                                
-                                
+                                .sheet(item: $selectedLesson) { lesson in
+                                    ProgramSheetTemplate(program: lesson)
+                                }
                             }
                             .padding()
                             
-                            
                         }
+                    }
+                }
+                .navigationViewStyle(StackNavigationViewStyle())
+                
+            }
+        }
+        .onChange(of: isQuizSheetPresented) { _ in
+            Task {
+                do {
+                    let authDataResult = try AuthenticationManager.shared.getAuthenticatedUser()
+                    let userLessons = try await UserManager.shared.getUserLessons(userId: authDataResult.uid)
+                    isLessonTenComplete = userLessons.contains { $0.lessonId == 10 }
+                    isLessonElevenComplete = userLessons.contains { $0.lessonId == 11 }
+                    isLessonTwelveComplete = userLessons.contains { $0.lessonId == 12 }
+                    isLessonThirteenComplete = userLessons.contains { $0.lessonId == 13 }
+                    isLessonFourteenComplete = userLessons.contains { $0.lessonId == 14 }
+                    
+                    print("Completed lessons: \(userLessons.map { $0.lessonId })")
+                } catch {
+                    print("Error fetching user lessons:", error.localizedDescription)
+                }
+
+                Task {
+                    do {
+                        let authDataResult = try AuthenticationManager.shared.getAuthenticatedUser()
+                        let userProgramStatus = try await UserManager.shared.getUserProgramStatus(userId: authDataResult.uid, programId: program.id)
                         
+                        switch userProgramStatus {
+                        case ProgramStatusOffice.inProgress.rawValue:
+                            programLabel = "In progress"
+                        case ProgramStatusOffice.completed.rawValue:
+                            programLabel = "Completed"
+                        default:
+                            programLabel = ""
+                        }
+                    } catch {
+                        print("Error getting user program status:", error.localizedDescription)
                     }
                 }
-        }
-            .navigationViewStyle(StackNavigationViewStyle())
+            }
             
-            
-    }
-        .sheet(isPresented: $programSheetOfficeDesensitization) {
-            ProgramSheetOfficeDesensitization()
         }
-        .sheet(isPresented: $programSheetOfficePlace) {
-            ProgramSheetOfficePlace()
-        }
-        .sheet(isPresented: $programSheetOfficeGreet) {
-            ProgramSheetOfficeGreet()
-        }
-        .sheet(isPresented: $programSheetOfficeSpace) {
-            ProgramSheetOfficeSpace()
-        }
-        .sheet(isPresented: $programSheetOfficeSocial) {
-            ProgramSheetOfficeSocialization()
-        }
-        .sheet(isPresented: $programSheetOfficeQuiz) {
-            ProgramSheetOfficeQuiz()
-                .onDisappear {
-                    if isOfficeQuizComplete {
-                        programStatusOffice = ProgramStatusOffice.completed.rawValue
-                        print(programStatusOffice)
+        .onChange(of: selectedLesson) { _ in
+            Task {
+                do {
+                    let authDataResult = try AuthenticationManager.shared.getAuthenticatedUser()
+                    let userLessons = try await UserManager.shared.getUserLessons(userId: authDataResult.uid)
+                    isLessonTenComplete = userLessons.contains { $0.lessonId == 10 }
+                    isLessonElevenComplete = userLessons.contains { $0.lessonId == 11 }
+                    isLessonTwelveComplete = userLessons.contains { $0.lessonId == 12 }
+                    isLessonThirteenComplete = userLessons.contains { $0.lessonId == 13 }
+                    isLessonFourteenComplete = userLessons.contains { $0.lessonId == 14 }
+                    
+                    print("Completed lessons: \(userLessons.map { $0.lessonId })")
+                } catch {
+                    print("Error fetching user lessons:", error.localizedDescription)
+                }
+
+                Task {
+                    do {
+                        let authDataResult = try AuthenticationManager.shared.getAuthenticatedUser()
+                        let userProgramStatus = try await UserManager.shared.getUserProgramStatus(userId: authDataResult.uid, programId: program.id)
+                        
+                        switch userProgramStatus {
+                        case ProgramStatusOffice.inProgress.rawValue:
+                            programLabel = "In progress"
+                        case ProgramStatusOffice.completed.rawValue:
+                            programLabel = "Completed"
+                        default:
+                            programLabel = ""
+                        }
+                    } catch {
+                        print("Error getting user program status:", error.localizedDescription)
                     }
                 }
+            }
+            
+        }
+        .onChange(of: programSheetActive) { newActiveLesson in
+            Task {
+                do {
+                    let authDataResult = try AuthenticationManager.shared.getAuthenticatedUser()
+                    let userLessons = try await UserManager.shared.getUserLessons(userId: authDataResult.uid)
+                    isLessonTenComplete = userLessons.contains { $0.lessonId == 10 }
+                    isLessonElevenComplete = userLessons.contains { $0.lessonId == 11 }
+                    isLessonTwelveComplete = userLessons.contains { $0.lessonId == 12 }
+                    isLessonThirteenComplete = userLessons.contains { $0.lessonId == 13 }
+                    isLessonFourteenComplete = userLessons.contains { $0.lessonId == 14 }
+                    
+                    print("Completed lessons: \(userLessons.map { $0.lessonId })")
+                } catch {
+                    print("Error fetching user lessons:", error.localizedDescription)
+                }
+//                if isLessonFourteenComplete {
+//                    UserManager.shared.completeUserProgram(programId: program.id)
+//                }
+                Task {
+                    do {
+                        let authDataResult = try AuthenticationManager.shared.getAuthenticatedUser()
+                        let userProgramStatus = try await UserManager.shared.getUserProgramStatus(userId: authDataResult.uid, programId: program.id)
+                        
+                        switch userProgramStatus {
+                        case ProgramStatusOffice.inProgress.rawValue:
+                            programLabel = "In progress"
+                        case ProgramStatusOffice.completed.rawValue:
+                            programLabel = "Completed"
+                        default:
+                            programLabel = ""
+                        }
+                    } catch {
+                        print("Error getting user program status:", error.localizedDescription)
+                    }
+                }
+            }
+            print("Active Lesson changed to \(newActiveLesson?.title ?? "nil")")
+            
+        }
+        .onAppear {
+            Task {
+                do {
+                    let authDataResult = try AuthenticationManager.shared.getAuthenticatedUser()
+                    let userLessons = try await UserManager.shared.getUserLessons(userId: authDataResult.uid)
+                    isLessonTenComplete = userLessons.contains { $0.lessonId == 10 }
+                    isLessonElevenComplete = userLessons.contains { $0.lessonId == 11 }
+                    isLessonTwelveComplete = userLessons.contains { $0.lessonId == 12 }
+                    isLessonThirteenComplete = userLessons.contains { $0.lessonId == 13 }
+                    isLessonFourteenComplete = userLessons.contains { $0.lessonId == 14 }
+                    
+                    print("Completed lessons: \(userLessons.map { $0.lessonId })")
+                } catch {
+                    print("Error fetching user lessons:", error.localizedDescription)
+                }
+//                if isLessonFourteenComplete {
+//                    UserManager.shared.completeUserProgram(programId: program.id)
+//                }
+                Task {
+                    do {
+                        let authDataResult = try AuthenticationManager.shared.getAuthenticatedUser()
+                        let userProgramStatus = try await UserManager.shared.getUserProgramStatus(userId: authDataResult.uid, programId: program.id)
+                        
+                        switch userProgramStatus {
+                        case ProgramStatusOffice.inProgress.rawValue:
+                            programLabel = "In progress"
+                        case ProgramStatusOffice.completed.rawValue:
+                            programLabel = "Completed"
+                        default:
+                            programLabel = ""
+                        }
+                    } catch {
+                        // Handle the error, log or present an error message
+                        print("Error getting user program status:", error.localizedDescription)
+                    }
+                }
+            }
+            
+        }
+        .task {
+            do {
+                let authDataResult = try AuthenticationManager.shared.getAuthenticatedUser()
+                let userLessons = try await UserManager.shared.getUserLessons(userId: authDataResult.uid)
+                isLessonTenComplete = userLessons.contains { $0.lessonId == 10 }
+                isLessonElevenComplete = userLessons.contains { $0.lessonId == 11 }
+                isLessonTwelveComplete = userLessons.contains { $0.lessonId == 12 }
+                isLessonThirteenComplete = userLessons.contains { $0.lessonId == 13 }
+                isLessonFourteenComplete = userLessons.contains { $0.lessonId == 14 }
+                
+                
+                print("Completed lessons: \(userLessons.map { $0.lessonId })")
+            } catch {
+                print("Error fetching user lessons:", error.localizedDescription)
+            }
+            
         }
     }
 }
 
 #Preview {
-    ProgramViewOffice()
+    ProgramViewOffice(program: ProgramStructure(id: 3, title: "String?", status: "String?", image: "puppy"))
 }

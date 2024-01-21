@@ -12,7 +12,7 @@ import Firebase
 
 struct ContentSheetTemplate: View {
     @Environment(\.presentationMode) var presentationMode
-    let bgColor = Color(red: 250.0/255.0, green: 250.0/255.0, blue: 250.0/255.0)
+    let bgColor = Color(red: 1, green: 0.99, blue: 0.97)
     let item: ItemStructure
     @StateObject var favoriteItems = FavoriteItems()
     @StateObject private var viewModel = ItemViewModel()
@@ -83,20 +83,23 @@ struct ContentSheetTemplate: View {
                             
                             Text(summary)
                                 .font(.custom("Poppins-Regular", size: 14))
-                                .foregroundColor(.gray)
+                                .foregroundColor(Color(red: 0.27, green: 0.27, blue: 0.27))
                                 .padding()
                         }
                     }
-                    Text(item.description ?? " ")
-                    Spacer()
                     
-
-              
-//                    Button("Fetch status") {
-//                        // On button tap, check if the current item is in favorites
-//                        isFavorite = favoriteViewModel.userFavoriteItems.contains { $0.itemtId == item.id }
-//                        print("Is item in favorites: \(isFavorite)")
-//                    }
+                    ZStack(alignment: .leading) {
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(Color(red: 1, green: 0.97, blue: 0.9))
+                            . overlay(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .strokeBorder(Color(red: 0.95, green: 0.67, blue: 0.07), lineWidth: 1))
+                        
+                        Text(item.description ?? " ")                     
+                            .padding()
+                    }
+                    
+                    Spacer()
                     
                 }
                 .padding([.leading,.trailing], 16)
